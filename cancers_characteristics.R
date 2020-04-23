@@ -7,7 +7,7 @@
 
 
 # loop to compute all the characteristics
-if(!file.exists(file = "data_fit/C_all_cancers.RData")){
+if(!file.exists(file = "data_fit/C_IBS_ch_all_cancers.RData")){
   
   # data frame with all the characteristics
   clinical_feat <- c("n patients", "p genes", "censoring rate",
@@ -89,19 +89,19 @@ if(!file.exists(file = "data_fit/C_all_cancers.RData")){
                                               signif(km_fit_summary$std.err[2],3))))
     
     # --- compute the concordance ---
-    if(!file.exists(paste0("data_fit/", cancer, "/ridge/C_all_genes_ridge.RData"))){
+    if(!file.exists(paste0("data_fit/", cancer, "/C_all_genes_ridge.RData"))){
       
       ind <- 1
       
       for(i in 1: n_rep){
         
-        print(paste0("*** Start learning for repetition number: ", i, " ***"))
+        print(paste0("Start learning for repetition number: ", i, " ***"))
         
         flds <- createFolds(1:nrow(gene_data), k = K_folds, list = TRUE, returnTrain = FALSE)
         
         for(k in 1:K_folds){
           
-          print(paste0("*** Start learning for fold: ", k, " ***"))
+          print(paste0("Start learning for fold: ", k, " ***"))
           
           # build training and testing dataset
           id_test <- flds[[k]]
@@ -157,22 +157,22 @@ if(!file.exists(file = "data_fit/C_all_cancers.RData")){
     }else{
       load(file = paste0("data_fit/", cancer, "/C_all_genes_ridge.RData"))
       
-      C_df_all_can[ind, cancer] <- C_vect_ridge
-      IBS_df_all_can[ind, cancer] <- IBS_vect_ridge
+      C_df_all_can[, cancer] <- C_vect_ridge
+      IBS_df_all_can[, cancer] <- IBS_vect_ridge
     }
     
   }
   
-  # save the characteristics of the data as csv file
-  write.csv(data_ch, file = "cancer_characteristics.csv")
-  print(paste("csv file with characteristics of the different cancers saved"))
-  
-  # save the c-indices of all cancers
-  save(C_df_all_can, IBS_df_all_can, data_ch, file = "data_fit/C_IBS_ch_all_cancers.RData")
-  
 }else{
   load(file = "data_fit/C_IBS_ch_all_cancers.RData")
 }
+
+# save the characteristics of the data as csv file
+write.csv(data_ch, file = "cancer_characteristics.csv")
+print(paste("csv file with characteristics of the different cancers saved"))
+
+# save the c-indices of all cancers
+save(C_df_all_can, IBS_df_all_can, data_ch, file = "data_fit/C_IBS_ch_all_cancers.RData")
 
 C_df_ch <- melt(C_df_all_can)
 C_df_ch <- C_df_ch[, -1]
@@ -185,7 +185,7 @@ C_df_ch[C_df_ch$cancer %in% c("KIRC", "BRCA", "LUSC", "LGG"), 'color'] <- "light
 C_all_cancers_ggplot <- 
   ggplot(data = C_df_ch, aes(x = reorder(cancer, C, FUN = function(x) median(x, na.rm = T)), 
                                                    y=C, fill=color)) +
-  geom_boxplot() + theme_Publication() + scale_fill_Publication() +
+  geom_boxplot() + theme_Publication() + 
   geom_hline(yintercept=0.5, col="red", linetype="dashed", size = 0.5) +
   scale_fill_manual(values="lightblue") +
   theme(axis.text.x = element_text(size = 10)) + 
@@ -194,7 +194,7 @@ C_all_cancers_ggplot <-
 print(C_all_cancers_ggplot)
 
 # median C-indices for all cancers
-apply(C_df_all_can, 2, function(x) median(x, na.rm = T))
+print(apply(C_df_all_can, 2, function(x) median(x, na.rm = T)))
 
 
 

@@ -15,4 +15,4 @@ if(!file.exists(paste0("data_fit/", cancer, "/EN/pred_df_pre_filtering_miRNA.RDa
 # load the data and plot the results
 load(file =  paste0("data_fit/", cancer, "/EN/pred_df_pre_filtering_miRNA.RData"))
 
-plot_preFiltering(optimize_flt_miRNA$C_ary, optimize_flt_miRNA$n_genes_ary)
+print(plot_preFiltering(optimize_flt_miRNA$C_ary, optimize_flt_miRNA$n_genes_ary))

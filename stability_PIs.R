@@ -9,7 +9,7 @@
 # start index of the method
 ind <- 1
 
-for(method in methods_vect){
+for(method in methods_vect_mult){
   
   if(!file.exists(paste0("data_fit/", cancer, "/", method, "/PI_bootstrap.RData"))){
     
@@ -56,17 +56,17 @@ for(method in methods_vect){
       IQR_vect_train <- apply(gene_data_train, 2, IQR)
       
       # pre-filter the data
-      id_non_flt_genes <- p_val_cox_train_BH <= thrs_sup[ind] & IQR_vect_train >= thrs_unsup[ind]
+      id_non_flt_genes <- p_val_cox_train_BH <= opt_thrs_sup[ind] & IQR_vect_train >= opt_thrs_unsup[ind]
       gene_data_train_std_flt <- gene_data_train_std[, id_non_flt_genes]
       gene_data_test_std_flt <- gene_data_test_std[, id_non_flt_genes]
       
-      PI_test_df <- matrix(ncol = n_rep, nrow = nrow(gene_data_test_std))
+      PI_test_df <- matrix(ncol = n_PIs, nrow = nrow(gene_data_test_std))
       row.names(PI_test_df) <- row.names(gene_data_test_std)
       
-      PI_test_df_flt <- matrix(ncol = n_rep, nrow = nrow(gene_data_test_std_flt))
+      PI_test_df_flt <- matrix(ncol = n_PIs, nrow = nrow(gene_data_test_std_flt))
       row.names(PI_test_df_flt) <- row.names(gene_data_test_std_flt)
       
-      for(i in 1:n_rep){
+      for(i in 1:n_PIs){
         
         # bootstrap training datasets
         id_bootstrap <- sample(1:nrow(gene_data_train_std_flt), replace = T)

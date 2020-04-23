@@ -36,15 +36,15 @@ if(!file.exists(paste0("data_fit/", cancer, "/mixOmics.RData"))){
     
     print(paste0("*** Start learning for repetition number: ", i, " ***"))
     
-    flds <- createFolds(1:nrow(mRNA_data), k = K_folds, list = TRUE, returnTrain = FALSE)
+    flds_tmp <- createFolds(1:nrow(mRNA_data), k = K_folds, list = TRUE, returnTrain = FALSE)
     
     for(k in 1:K_folds){
       
       
-      print(paste0("*** Start learning for fold: ", k, " ***"))
+      print(paste0("Start learning for fold: ", k, " ***"))
       
       # build training and testing dataset
-      id_test <- flds[[k]]
+      id_test <- flds_tmp[[k]]
       
       mRNA_data_train <- mRNA_data[-id_test,]
       mRNA_data_test <- mRNA_data[id_test,]
@@ -181,8 +181,8 @@ if(!file.exists(paste0("data_fit/", cancer, "/mixOmics.RData"))){
           names(beta) <- colnames( gene_data_train_mix_flt) 
           PI_test_flt <-  gene_data_test_mix_flt %*% beta
           PI_train_flt <- gene_data_train_mix_flt %*% beta
-          C_df_flt[i,k] <- concordance.index(PI_test_flt, surv.time = OS_tcga_df[id_test,"time"], 
-                                             surv.event = OS_tcga_df[id_test,"status"])$c.index 
+          C_df_flt[i,k] <- concordance.index(PI_test_flt, surv.time = clinical_data_srv[id_test,"time"], 
+                                             surv.event = clinical_data_srv[id_test,"status"])$c.index 
           IBS_df_flt[i,k] <- predErr(y_cox_train, y_cox_test, PI_train_flt, PI_test_flt, times = seq(0, 3, by=1/365.25), 
                                      type = "brier")$ierror
         }
@@ -202,8 +202,8 @@ if(!file.exists(paste0("data_fit/", cancer, "/mixOmics.RData"))){
           names(beta) <- colnames( gene_data_train_mix) 
           PI_test <-  gene_data_test_mix %*% beta
           PI_train <-  gene_data_train_mix %*% beta
-          C_df[i,k] <- concordance.index(PI_test, surv.time = OS_tcga_df[id_test,"time"], 
-                                         surv.event = OS_tcga_df[id_test,"status"])$c.index 
+          C_df[i,k] <- concordance.index(PI_test, surv.time = clinical_data_srv[id_test,"time"], 
+                                         surv.event = clinical_data_srv[id_test,"status"])$c.index 
           IBS_df[i,k] <- predErr(y_cox_train, y_cox_test, PI_train, PI_test, times = seq(0, 3, by=1/365.25), 
                                  type = "brier")$ierror
         }

@@ -22,8 +22,8 @@ require(glmnet)
 require(ggplot2)
 require(ggpubr)
 require(caret)
-library(survAUC)
-library(reshape2)
+require(survAUC)
+require(reshape2)
 require(scales)
 require(zipfR)
 
@@ -71,8 +71,9 @@ if(study_all_can){
 }
 
 # number of repetition and number of folds
-K_folds <- 5
-n_rep <- 10
+#     these parameters will not be changed along the code above
+K_folds <- 3
+n_rep <- 2
 
 # Compute all the characteristics for each cancers
 source(file = "cancers_characteristics.R")
@@ -94,14 +95,15 @@ source(file = "cancers_characteristics.R")
 
 # choose the cancer and the IQR threshold
 cancer <- "KIRC"
-IQR_thrs <- c(0, 2, 4)
-thrs_p_val <- c(0.01, 0.5, 1)
+IQR_thrs <- c(0, 2)
+thrs_p_val <- c(0.05, 1)
 
 # load the data of the desired cancer
 source(file = "load_data.R")
+dim(gene_data)
 
 # create folds
-K_folds <- 5
+K_folds
 if(!file.exists(paste0("data_fit/", cancer, "/folds.RData"))){
   set.seed(1234)
   flds <- createFolds(1:nrow(gene_data), k = K_folds, list = TRUE, returnTrain = FALSE)
@@ -111,7 +113,7 @@ if(!file.exists(paste0("data_fit/", cancer, "/folds.RData"))){
 }
 
 # choose the methods to study
-methods_vect <- c("ridge", "lasso", "EN", "AEN", "univCox")
+methods_vect <- c("ridge", "EN", "univCox")
 
 
 ########################################################################## #
@@ -132,8 +134,9 @@ for(method in methods_vect){
     print(paste0("*** Start learning for ", method, " ***"))
     
     # call the function to compute the C-indices by cross-validation
-    optimize_flt_mRNA <- optimize_preFiltering(gene_data, y_cox, method, k_fold = 5, 
-                                               flds = flds, IQR_thrs, thrs_p_val)
+    optimize_flt_mRNA <- optimize_preFiltering(gene_data, y_cox, method, 
+                                               flds_tmp = flds, IQR_thrs = IQR_thrs, 
+                                               thrs_p_val = thrs_p_val)
     
     # save the C-indices
     save(optimize_flt_mRNA,
@@ -144,7 +147,14 @@ for(method in methods_vect){
 # plot the result for the method of your choice
 method <- "ridge"
 load(file = paste0("data_fit/", cancer, "/", method, "/optimize_flt_mRNA.RData"))
+plot_preFiltering(optimize_flt_mRNA$C_ary, optimize_flt_mRNA$n_genes_ary)
 
+method <- "EN"
+load(file = paste0("data_fit/", cancer, "/", method, "/optimize_flt_mRNA.RData"))
+plot_preFiltering(optimize_flt_mRNA$C_ary, optimize_flt_mRNA$n_genes_ary)
+
+method <- "univCox"
+load(file = paste0("data_fit/", cancer, "/", method, "/optimize_flt_mRNA.RData"))
 plot_preFiltering(optimize_flt_mRNA$C_ary, optimize_flt_mRNA$n_genes_ary)
 
 
@@ -158,20 +168,26 @@ plot_preFiltering(optimize_flt_mRNA$C_ary, optimize_flt_mRNA$n_genes_ary)
 #
 ########################################################################## #
 
-# choose the number of repetitions of the K-fold cross-validation
-n_rep <- 10
-
 # choose the optimal supervised (p-value univariate Cox) and unsupervised 
 # (IQR) thresholds according to the previous step for each method 
-opt_thrs_sup <- c(0.5, 0.5, 0.5, 0.5, 0.01)
-opt_thrs_unsup <- c(2, 4, 3, 4, 5)
-names(opt_thrs_sup) = names(opt_thrs_unsup) <- methods_vect
+opt_thrs_sup <- c(0.05, 0.05, 0.05)
+opt_thrs_unsup <- c(2, 2, 0)
+
+if(length(opt_thrs_sup) != length(methods_vect) |
+   length(opt_thrs_unsup) != length(methods_vect)){
+  warning("One optimal threshold have to be assigned to each method")
+}else{
+  names(opt_thrs_sup) = names(opt_thrs_unsup) <- methods_vect  
+}
+
+# number of repetitions of the K-fold cross-validation
+n_rep 
 
 # learn the models
-source(file = "optimal_case_vs_no_filtering.R")
+source(file = "opt_case_vs_no_flt.R")
 
 # plot the results
-source(file = "plot/optimal_case_vs_no_filtering_plot.R")
+source(file = "plot/opt_case_vs_no_flt_plot.R")
 
 
 ########################################################################## #
@@ -186,10 +202,24 @@ source(file = "plot/optimal_case_vs_no_filtering_plot.R")
 # choose the number of PIs to estimate for each patient 
 #   (number of boostrap repetitions)
 # number of PIs to estimate per patient
-n_rep <- 50
+n_PIs <- 2
 
 # choose the methods to study (only multivariate)
-methods_vect <- c("ridge", "lasso", "EN", "AEN")
+#     elastic net ("EN") has to be in the methods as it is used 
+#     for mixing miRNA and mRNA data
+methods_vect_mult <- c("ridge", "EN")
+
+# choose the optimal supervised (p-value univariate Cox) and unsupervised 
+# (IQR) thresholds according to the previous step for each method 
+opt_thrs_sup <- c(0.05, 0.05)
+opt_thrs_unsup <- c(2, 2)
+
+if(length(opt_thrs_sup) != length(methods_vect_mult) |
+   length(opt_thrs_unsup) != length(methods_vect_mult)){
+  warning("One optimal threshold have to be assigned to each method")
+}else{
+  names(opt_thrs_sup) = names(opt_thrs_unsup) <- methods_vect_mult  
+}
 
 # learn the models
 source(file = "stability_PIs.R")
@@ -207,25 +237,28 @@ source(file = "plot/stability_PIs_plot.R")
 #
 ########################################################################## #
 
-# load miRNA dataset together with mRNA dataset
+# load miRNA dataset together with mRNA and clinical datasets
 source(file = "load_data_miRNA.R")
+dim(mRNA_data)
+dim(miRNA_data)
 
 # choose the optimal thresholds for miRNA dataset and the elastic net
 IQR_thrs_miRNA <- c(0, 1, 2)
 thrs_p_val_miRNA <- c(0.01, 0.5, 1)
 source(file = "opt_thresholds_miRNA.R")
 
-# best thresholds for the elastic net for mRNA dataset
-thrs_sup <- 0.5
-thrs_unsup <- 3
-
 # best thresholds for the elastic net for miRNA dataset
-thrs_sup_miRNA <- 0.5
+thrs_sup_miRNA <- 1
 thrs_unsup_miRNA <- 1
 
-# choose the number of folds and the number of repetitions
-K_folds <- 5
-n_rep <- 10
+# best thresholds for the elastic net for mRNA dataset
+thrs_sup <- opt_thrs_sup["EN"]
+thrs_unsup <- opt_thrs_unsup["EN"]
+thrs_sup
+thrs_unsup
+
+# number of repetitions
+n_rep 
 
 # learn the models
 source(file = "mixing_miRNA_mRNA.R")
