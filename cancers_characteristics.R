@@ -12,7 +12,7 @@ if(!file.exists(file = "data_fit/C_IBS_ch_all_cancers.RData")){
   # data frame with all the characteristics
   clinical_feat <- c("n patients", "p genes", "censoring rate",
                      "survival - 3 years", "survival - 5 years",
-                     "Female/Male/NA", "Age at diagnosis (q25/q75/NA)")
+                     "Female/Male/NA", "Median age at diagnosis (q25/q75/NA)")
   data_ch <- data.frame(matrix(ncol = length(clinical_feat), nrow = length(cancers_vect)))
   row.names(data_ch) <- cancers_vect
   colnames(data_ch) <- clinical_feat
@@ -39,11 +39,11 @@ if(!file.exists(file = "data_fit/C_IBS_ch_all_cancers.RData")){
     
     # age
     age <- as.numeric(as.character(clinical_data$patient.age_at_initial_pathologic_diagnosis))
-    data_ch[cancer, "Age at diagnosis (q25/q75/NA)"] <- paste0(median(age, na.rm = T), " (",
+    data_ch[cancer, "Median age at diagnosis (q25/q75/NA)"] <- paste0(median(age, na.rm = T), " (",
                                                                quantile(age, probs = 0.25, na.rm = T), "/", 
                                                                quantile(age, probs = 0.75, na.rm = T), "/",
                                                                sum(is.na(age)), ")")
-    print(paste("Age at diagnosis:", median(age, na.rm = T)))
+    print(paste("Median age at diagnosis:", median(age, na.rm = T)))
     
     # remove genes with NA values
     id_NA_gene <- apply(gene_data, 2, function(x) sum(which(is.na(x))))
