@@ -106,7 +106,6 @@ if(!file.exists(file = "data_fit/C_IBS_ch_all_cancers.RData")){
           # build training and testing dataset
           id_test <- flds[[k]]
           
-          # standardize the data
           gene_data_train <- gene_data[-id_test,]
           gene_data_test <- gene_data[id_test,]
           y_cox_train <- y_cox[-id_test]
