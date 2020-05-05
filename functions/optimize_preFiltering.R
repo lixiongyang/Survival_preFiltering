@@ -5,6 +5,7 @@
 # @parameters: 
 #   - data: genetic data (mRNA or miRNA dataset)
 #   - y_cox: Surv object containing follow-up times and status
+#   - clinical_data_srv: data frame with two columns (time and status)
 #   - method: "EN" for elastic net, "lasso" for lasso, "ridge" for ridge and "AEN"
 #             for adaptive elastic net
 #   - k_fold: number of folds for the cross-validation
@@ -19,8 +20,8 @@
 #   - p_val_ary: p-value of the logrank test between patients with low PIs, 
 #                (lower than the median) and patients with high PIs.
 #   - n_genes_ary: number of genes retained after the pre-filtering
-optimize_preFiltering <- function(data, y_cox, method, k_fold = 5, flds_tmp = NULL, 
-                                  IQR_thrs = 0:4, 
+optimize_preFiltering <- function(data, y_cox, clinical_data_srv, method, 
+                                  k_fold = 5, flds_tmp = NULL, IQR_thrs = 0:4, 
                                   thrs_p_val = c(0.01, 0.05, 0.1, 0.5, 1)){
   
   
