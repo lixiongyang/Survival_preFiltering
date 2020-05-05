@@ -5,7 +5,7 @@
 
 if(!file.exists(paste0("data_fit/", cancer, "/EN/pred_df_pre_filtering_miRNA.RData"))){
   
-  optimize_flt_miRNA <- optimize_preFiltering(miRNA_data, y_cox, "EN", k_fold = K_folds, 
+  optimize_flt_miRNA <- optimize_preFiltering(miRNA_data, y_cox, clinical_data_srv, "EN", k_fold = K_folds, 
                                               flds = NULL, IQR_thrs_miRNA, thrs_p_val_miRNA)
   
   save(optimize_flt_miRNA,
