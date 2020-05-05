@@ -148,7 +148,7 @@ for(method in methods_vect){
     print(paste0("*** Start learning for ", method, " ***"))
     
     # call the function to compute the C-indices by cross-validation
-    optimize_flt_mRNA <- optimize_preFiltering(gene_data, y_cox, method, 
+    optimize_flt_mRNA <- optimize_preFiltering(gene_data, y_cox, clinical_data_srv, method, 
                                                flds_tmp = flds, IQR_thrs = IQR_thrs, 
                                                thrs_p_val = thrs_p_val)
     
